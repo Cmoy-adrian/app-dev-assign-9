@@ -113,13 +113,18 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
         
-        // Create session (TODO: Replace with JWT)
-        req.session.userId = user.id;
-        req.session.userName = user.name;
-        req.session.userEmail = user.email;
+        // Create JWS token
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email,
+            },
+            process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN}  
+        );
         
         res.json({
             message: 'Login successful',
+            token: token,
             user: {
                 id: user.id,
                 name: user.name,
