@@ -140,12 +140,7 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/logout - User logout
 app.post('/api/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ error: 'Failed to logout' });
-        }
-        res.json({ message: 'Logout successful' });
-    });
+    res.json.apply({ message: "Logout succesful"})
 });
 
 // USER ROUTES
