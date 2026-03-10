@@ -47,6 +47,40 @@ function requireAuth(req, res, next) {
     }
 }
 
+// Role-based auth middleware
+function requireManager(req, res, next) {
+    // Check if user is authenticated first
+    if (!req.user) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    // Check if user has manager or admin role
+    if (req.user.role === 'manager' || req.user.role === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ 
+            error: 'Access denied. Manager role required.' 
+        });
+    }
+}
+
+function requireAdmin(req, res, next) {
+    // Check if user is authenticated first
+    if (!req.user) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    // Check if user has admin role
+    if (req.user.role === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ 
+            error: 'Access denied. Admin role required.' 
+        });
+    }
+}
+
+
 // Test database connection
 async function testConnection() {
     try {
