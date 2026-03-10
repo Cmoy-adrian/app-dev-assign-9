@@ -12,30 +12,38 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
-// Session middleware (TODO: Replace with JWT)
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-}));
-
-// TODO: Create JWT middleware to replace session auth
+// JWT middleware
 function requireAuth(req, res, next) {
-    if (req.session && req.session.userId) {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    
+    // Get the token (remove 'Bearer ' prefix)
+    const token = authHeader.substring(7);
+    
+    try {
+        // Verify and decode the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // User info is now available from the token
         req.user = {
-            id: req.session.userId,
-            name: req.session.userName,
-            email: req.session.userEmail
+            id: decoded.id,
+            username: decoded.username,
+            email: decoded.email
         };
+        
         next();
-    } else {
-        res.status(401).json({ 
-            error: 'Authentication required. Please log in.' 
-        });
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+        } else {
+            return res.status(401).json({ error: 'Token verification failed' });
+        }
     }
 }
 
