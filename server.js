@@ -178,7 +178,7 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/logout - User logout
 app.post('/api/logout', (req, res) => {
-    res.json.apply({ message: "Logout successful"})
+    res.json({ message: "Logout successful"})
 });
 
 // USER ROUTES
