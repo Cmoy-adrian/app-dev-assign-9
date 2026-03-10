@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
-
 const express = require('express');
-const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { db, User, Project, Task } = require('./database/setup');
 require('dotenv').config();
@@ -31,7 +29,6 @@ function requireAuth(req, res, next) {
         // User info is now available from the token
         req.user = {
             id: decoded.id,
-            username: decoded.username,
             email: decoded.email,
             role: decoded.role
         };
@@ -115,7 +112,7 @@ app.post('/api/register', async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role
+            role: 'employee'
         });
         
         res.status(201).json({
@@ -149,7 +146,7 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
         
-        // Create JWS token
+        // Create JWT token
         const token = jwt.sign(
             {
                 id: user.id,
@@ -177,7 +174,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // POST /api/logout - User logout
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', requireAuth, (req, res) => {
     res.json({ message: "Logout successful"})
 });
 
@@ -187,7 +184,7 @@ app.post('/api/logout', (req, res) => {
 app.get('/api/users/profile', requireAuth, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id, {
-            attributes: ['id', 'name', 'email'] // Don't return password
+            attributes: ['id', 'name', 'email', 'role'] // Don't return password
         });
         
         if (!user) {
